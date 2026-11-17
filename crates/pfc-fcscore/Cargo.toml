@@ -1,0 +1,17 @@
+[package]
+name = "pfc-fcscore"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FCScore aerobatic flight grading engine (element segmentation, intra/inter/positioning downgrades)"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+indexmap.workspace = true
+pfc-schemas.workspace = true
+pfc-geometry.workspace = true
+pfc-flightdata.workspace = true
+
+[dev-dependencies]
+approx.workspace = true

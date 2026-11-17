@@ -1,0 +1,38 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/pfc-schemas",
+    "crates/pfc-geometry",
+    "crates/ardupilot-log-reader",
+    "crates/pfc-flightdata",
+    "crates/pfc-fcscore",
+    "crates/pfc-plotting",
+    "crates/flightcoach-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/mc71/PyFlightCoach"
+authors = ["PyFlightCoach Contributors"]
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+anyhow = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+regex = "1.11"
+indexmap = { version = "2.7", features = ["serde"] }
+approx = "0.5"
+pfc-schemas = { path = "crates/pfc-schemas" }
+pfc-geometry = { path = "crates/pfc-geometry" }
+ardupilot-log-reader = { path = "crates/ardupilot-log-reader" }
+pfc-flightdata = { path = "crates/pfc-flightdata" }
+pfc-fcscore = { path = "crates/pfc-fcscore" }
+pfc-plotting = { path = "crates/pfc-plotting" }
+
+[patch.crates-io]
+windows-link = { path = "crates/windows-link-shim" }
+webbrowser = { path = "crates/webbrowser-shim" }

@@ -1,0 +1,18 @@
+[package]
+name = "pfc-schemas"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Schemas for PyFlightCoach (FCJ, AJson, Aresti, Positioning, SDef, SInfo)"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+regex.workspace = true
+indexmap.workspace = true
+semver = "1.0"
+
+[dev-dependencies]
+approx.workspace = true

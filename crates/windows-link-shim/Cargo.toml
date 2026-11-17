@@ -1,0 +1,9 @@
+[package]
+name = "windows-link"
+version = "0.2.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Windows link macro backed by prebuilt windows-targets import libraries for self-contained GNU and MSVC toolchains"
+
+[dependencies]
+windows-targets = "0.52.6"

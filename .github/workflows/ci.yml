@@ -1,0 +1,111 @@
+name: Rust Build & Test (Desktop, Android, iOS)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  desktop:
+    name: Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux GUI dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libgtk-3-dev
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run workspace unit & integration tests
+        run: cargo test --workspace
+
+      - name: Build release desktop binary & libraries
+        run: cargo build --workspace --release
+
+      - name: Smoke-test 3D Plotly HTML export
+        run: cargo run --release -p flightcoach-app -- --export-html flightcoach_demo.html
+
+      - name: Upload Desktop release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flightcoach-desktop-${{ matrix.os }}
+          path: |
+            target/release/flightcoach*
+            flightcoach_demo.html
+
+  android:
+    name: Android (aarch64 & x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust stable with Android targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,x86_64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+
+      - name: Build Android JNI shared libraries (.so)
+        run: |
+          cargo ndk -t arm64-v8a -t x86_64 -o mobile/android/app/src/main/jniLibs rustc --release -p flightcoach-app --lib -- --crate-type=cdylib
+
+      - name: Upload Android JNI libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: flightcoach-android-jniLibs
+          path: mobile/android/app/src/main/jniLibs/**
+
+  ios:
+    name: iOS (aarch64-apple-ios & aarch64-apple-ios-sim)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust stable with iOS targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+
+      - name: Build iOS static & dynamic libraries
+        run: |
+          cargo build --release --target aarch64-apple-ios -p flightcoach-app
+          cargo build --release --target aarch64-apple-ios-sim -p flightcoach-app
+
+      - name: Package XCFramework
+        run: |
+          xcodebuild -create-xcframework \
+            -library target/aarch64-apple-ios/release/libflightcoach_app.a \
+            -headers mobile/ios \
+            -library target/aarch64-apple-ios-sim/release/libflightcoach_app.a \
+            -headers mobile/ios \
+            -output FlightCoach.xcframework
+
+      - name: Upload iOS XCFramework
+        uses: actions/upload-artifact@v4
+        with:
+          name: flightcoach-ios-xcframework
+          path: FlightCoach.xcframework/**
